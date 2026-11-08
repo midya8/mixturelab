@@ -8,6 +8,7 @@ from .core import Model, expectation
 from .experiment import run, saved
 from .controls import controls
 from .audit import audit
+from .geometry import geometry_raw, trace
 
 
 def read_json(path):
@@ -30,6 +31,9 @@ def main():
     fit=sub.add_parser('fit');fit.add_argument('--output',required=True)
     check=sub.add_parser('audit');check.add_argument('--report')
     predict=sub.add_parser('predict');predict.add_argument('--input',required=True);predict.add_argument('--model-id');predict.add_argument('--report')
+    for command in ('geometry','ascend'):
+        calc=sub.add_parser(command);calc.add_argument('--input',required=True);calc.add_argument('--model-id');calc.add_argument('--report')
+        if command=='ascend':calc.add_argument('--budget',type=int,default=128)
     args=parser.parse_args()
     try:
         if args.command=='report':
@@ -49,6 +53,12 @@ def main():
             samples=matrix(raw['samples'])
             if samples.shape[1]!=len(r['mean']):raise ValueError('expected 13 source features')
             z=(samples-np.array(r['mean']))/np.array(r['scale'])
+            if args.command in ('geometry','ascend'):
+                if len(samples)!=1:raise ValueError('geometry/ascend requires exactly one input row')
+                m=Model.from_dict(fit['model'])
+                out=dict(model_id=model_id,geometry=geometry_raw(samples[0],m,r['mean'],r['scale']))
+                if args.command=='ascend':out['trace']=trace(z[0],m,args.budget)
+                print(json.dumps(out,indent=2,allow_nan=False));return 0
             logs,resp=expectation(z,Model.from_dict(fit['model']))
             out=dict(model_id=model_id,log_density_standardized=logs.tolist(),log_density_original_units=(logs-r['original_unit_log_jacobian']).tolist(),responsibilities=resp.tolist(),scope='posterior component probabilities within this fitted density, not cultivar probabilities or calibrated confidence')
         print(json.dumps(out,indent=2,allow_nan=False))
