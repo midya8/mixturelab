@@ -49,6 +49,7 @@ def main():
             if fit is None:raise ValueError('unknown model id')
             raw=read_json(args.input)
             if not isinstance(raw,dict) or set(raw)!={'samples'}:raise ValueError('input must contain only samples')
+            if not isinstance(raw['samples'],list) or any(not isinstance(row,list) or any(isinstance(v,bool) or not isinstance(v,(int,float)) for v in row) for row in raw['samples']):raise ValueError('samples must be arrays of JSON numbers, not booleans or strings')
             from .core import matrix
             samples=matrix(raw['samples'])
             if samples.shape[1]!=len(r['mean']):raise ValueError('expected 13 source features')
