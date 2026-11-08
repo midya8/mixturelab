@@ -6,6 +6,14 @@
 
 Fit a real 13-dimensional density from public chemical measurements. Edit any feature in the browser and recompute the component posterior using a separate scalar JavaScript implementation. No sklearn mixture estimator, model API, downloaded weights, private dataset or classification claim.
 
+## v0.2: local density geometry
+
+[Open the geometry inspector](https://midya8.github.io/mixturelab/geometry.html) · [Derivative identities and bounded-ascent method](GEOMETRY.md)
+
+Analytic input scores, full Hessians and component-posterior Jacobians for the same frozen models. A separate scalar browser implementation checks all 40 native geometry references and all eight finite-budget ascent traces. Each accepted standardized-input step retains its sufficient-ascent inequality. The full k=2/3/5 traces remain unfinished at 128 updates. A symmetric two-Gaussian control has score zero and curvature +3 at a strict local minimum, so even the norm stopping rule is explicitly not a mode certificate.
+
+312 coordinate finite-difference probes and 50 independent scalar directional second differences check the derivatives. Original-unit transforms, label permutation, duplicate components, keyboard/invalid-input/export and responsive controls remain covered. Original training, split, report, scores and browser data/reference bytes are unchanged. These are local fixed-model input derivatives, not causal importance, plausible chemistry, calibrated uncertainty or an exhaustive/global mode finder.
+
 ## What is implemented
 
 - Log-space E-steps and weighted mean/covariance M-steps in NumPy.
@@ -54,7 +62,7 @@ node --test tests/*.cjs
 
 The real-Chrome test requires Chrome and Node 22+; set `CHROME_BIN` if needed. It exercises the actual page, not a DOM mock. Native and browser arithmetic are compared over all eight models and all 178 source rows: 1,424 density evaluations and every component responsibility. Tests also cover an independent scalar/2D Gaussian likelihood, 100 randomized numerical precision-space KKT checks, 40 analytic rotated 2D clipping oracles, explicit EM identities, holdout-poisoning isolation, original-unit transformations, zero budgets, invalid data and the controls. Float tolerances are stated in code; exact bitwise refit portability is not promised.
 
-The wheel check imports all eight modules and runs all five CLI commands outside the source tree, including 24 complete fresh refits and both saved/fresh audits:
+The wheel check imports all ten modules and runs all seven CLI commands outside the source tree, including 24 complete fresh refits and both saved/fresh audits:
 
 ```sh
 python -m pip wheel . --no-deps -w /tmp/mixture-wheels
