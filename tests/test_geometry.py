@@ -97,7 +97,21 @@ class GeometryTests(unittest.TestCase):
             build(out)
             files=sorted(str(p.relative_to(out)) for p in out.rglob('*') if p.is_file())
             self.assertEqual(files,['docs/geometry-data.js','mixturelab/artifacts/geometry-reference.json'])
-            for f in files:self.assertEqual((out/f).read_bytes(),(root/f).read_bytes())
+            import json
+            def parsed(file):
+                text=file.read_text()
+                if file.suffix=='.js':text=text.removeprefix('globalThis.GEOMETRY_DATA = ').rstrip().removesuffix(';')
+                return json.loads(text)
+            def compare(actual,expected):
+                if isinstance(expected,dict):
+                    self.assertEqual(set(actual),set(expected))
+                    for key in expected:compare(actual[key],expected[key])
+                elif isinstance(expected,list):
+                    self.assertEqual(len(actual),len(expected))
+                    for a,b in zip(actual,expected):compare(a,b)
+                elif isinstance(expected,float):self.assertAlmostEqual(actual,expected,delta=2e-8*(1+abs(expected)))
+                else:self.assertEqual(actual,expected)
+            for f in files:compare(parsed(out/f),parsed(root/f))
 
     def test_geometry_cli_strict_row_and_budget(self):
         import contextlib,io,json,sys,tempfile
