@@ -85,4 +85,40 @@ class GeometryTests(unittest.TestCase):
             with self.assertRaises(ValueError):geometry(value,m)
         with self.assertRaises(ValueError):geometry_raw([0,0],m,[0,0],[0,1])
 
+
+    def test_geometry_export_reproduces_only_new_artifacts(self):
+        import tempfile
+        from pathlib import Path
+        from mixturelab.geometry_export import build
+        root=Path(__file__).resolve().parents[1]
+        with tempfile.TemporaryDirectory() as directory:
+            out=Path(directory)
+            (out/'mixturelab/artifacts').mkdir(parents=True);(out/'docs').mkdir()
+            build(out)
+            files=sorted(str(p.relative_to(out)) for p in out.rglob('*') if p.is_file())
+            self.assertEqual(files,['docs/geometry-data.js','mixturelab/artifacts/geometry-reference.json'])
+            for f in files:self.assertEqual((out/f).read_bytes(),(root/f).read_bytes())
+
+    def test_geometry_cli_strict_row_and_budget(self):
+        import contextlib,io,json,sys,tempfile
+        from pathlib import Path
+        from unittest.mock import patch
+        from mixturelab.__main__ import main
+        row=load()[0].tolist()
+        with tempfile.TemporaryDirectory() as directory:
+            file=Path(directory)/'input.json'
+            def call(command,payload,budget=None):
+                file.write_text(json.dumps(payload));args=['mixturelab',command,'--input',str(file)]
+                if budget is not None:args+=['--budget',str(budget)]
+                stdout=io.StringIO();stderr=io.StringIO()
+                with patch.object(sys,'argv',args),contextlib.redirect_stdout(stdout),contextlib.redirect_stderr(stderr):code=main()
+                return code,stdout.getvalue(),stderr.getvalue()
+            for command in ('geometry','ascend'):
+                for payload in ({'samples':[row,row]},{'samples':[row[:-1]]},{'samples':[row],'extra':0},{'samples':[[True]+row[1:]]}):
+                    code,out,err=call(command,payload);self.assertEqual(code,2);self.assertEqual(out,'');self.assertTrue(err)
+            for budget in (-1,4097):
+                code,out,err=call('ascend',{'samples':[row]},budget);self.assertEqual(code,2);self.assertEqual(out,'');self.assertTrue(err)
+            code,out,err=call('ascend',{'samples':[row]},0);self.assertEqual(code,0);self.assertFalse(err);result=json.loads(out);self.assertEqual(result['trace']['updates'],0);self.assertEqual(result['trace']['status'],'budget_exhausted')
+            code,out,err=call('geometry',{'samples':[row]});self.assertEqual(code,0);self.assertFalse(err);self.assertEqual(len(json.loads(out)['geometry']['hessian']),13)
+
 if __name__=='__main__':unittest.main()
