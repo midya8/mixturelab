@@ -11,8 +11,8 @@ python - <<'PY'
 import importlib,pkgutil,mixturelab
 mods=sorted(m.name for m in pkgutil.walk_packages(mixturelab.__path__,mixturelab.__name__+'.'))
 for m in mods:importlib.import_module(m)
-assert len(mods)==9,mods
-print('all ten package modules including root imported outside checkout')
+assert len(mods)==11,mods
+print('all twelve package modules including root imported outside checkout')
 PY
 python -m mixturelab report > report-summary.json
 python -m mixturelab controls > controls.json
@@ -32,6 +32,25 @@ json.dump({'samples':[load()[0].tolist()]},open('one.json','w'))
 PYONE
 python -m mixturelab geometry --input one.json > geometry.json
 python -m mixturelab ascend --input one.json --budget 16 > ascent.json
+python - <<'PYCONDINPUT'
+import json
+from mixturelab.dataset import load
+json.dump(dict(observed=[2,0],values=load()[0,[2,0]].tolist()),open('condition.json','w'))
+PYCONDINPUT
+python -m mixturelab condition --input condition.json > conditional.json
+python -m mixturelab conditional-controls > conditional-controls.json
+python - <<'PYCONDCHECK'
+import json
+import numpy as np
+from mixturelab.core import Model
+from mixturelab.conditional import condition_raw
+from mixturelab.experiment import saved
+r=saved();m=Model.from_dict(next(c for c in r['candidates']if c['id']==r['selected_id'])['model']);input=json.load(open('condition.json'));want=condition_raw(m,input['observed'],input['values'],r['mean'],r['scale']);got=json.load(open('conditional.json'))['conditional']
+assert got==want
+assert len(got['mean'])==11
+assert json.load(open('conditional-controls.json'))['increasing_variance']['conditional_target_variance']>25
+print('installed conditional CLI, full covariance and synthetic controls pass')
+PYCONDCHECK
 python - <<'PYGEOM'
 import json
 assert len(json.load(open('geometry.json'))['geometry']['hessian'])==13
@@ -57,7 +76,7 @@ p=json.load(open('predictions.json'));fit=next(a for a in original['candidates']
 ll,r=expectation((load()[:2]-np.array(original['mean']))/np.array(original['scale']),Model.from_dict(fit['model']))
 np.testing.assert_allclose(ll,p['log_density_standardized'],atol=1e-12)
 np.testing.assert_allclose(r,p['responsibilities'],atol=1e-12)
-print('all seven installed CLI commands, 24 fresh refits, holdout, covariance and identity audits pass')
+print('all nine installed CLI commands, 24 fresh refits, holdout, covariance and identity audits pass')
 PY
 printf '%s\n' '{"samples":[[NaN]]}' > invalid.json
 if python -m mixturelab predict --input invalid.json > invalid-output.json 2> invalid-error.txt; then
