@@ -79,7 +79,7 @@ Eight saved traces start at the same public test-example row already displayed b
 - Every accepted trace step is checked for the actual sufficient-ascent inequality, step length and finite budget. The zero-gradient strict minimum, zero budget, invalid values and duplicate controls are explicit.
 - Actual Chrome checks numerical witnesses on the page, model/input changes, trace reset, all budgets, keyboard input, invalid export blocking, copy failure/success, the downloaded JSON blob and expanded mobile/desktop layouts.
 
-The stored reference generator never refits or rewrites the original experiment. `python -m mixturelab.geometry_export` recreates only the two new geometry artifacts.
+The stored reference generator never refits or rewrites the original experiment. Regeneration checks compare every nested numeric value with tolerance `2e-8 * (1 + abs(reference))`, preserving keys, shapes, discrete statuses and update counts exactly. JSON float spelling is not bitwise portable across Python/BLAS platforms. `python -m mixturelab.geometry_export` recreates only the two new geometry artifacts.
 
 ## 6. CLI
 
