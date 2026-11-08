@@ -110,3 +110,7 @@ The standalone audit recomputes source-space splits/scaling, every saved candida
 - NumPy: symmetric eigenvectors/eigenvalues, Cholesky factorization and determinant conventions. https://numpy.org/doc/stable/reference/generated/numpy.linalg.eigh.html ; https://numpy.org/doc/stable/reference/generated/numpy.linalg.cholesky.html ; https://numpy.org/doc/stable/reference/generated/numpy.linalg.slogdet.html
 
 Standard algorithms, original code, explicit numerical limits. No endorsement or claim of algorithmic novelty.
+
+## v0.3 conditional inference
+
+[CONDITIONAL.md](CONDITIONAL.md) derives fixed-model marginal evidence, component Schur complements, centered within/between covariance and original-unit Jacobians. It records six source notes, empty-dimensional conventions, underflow and numerical refusal, direct scalar/precision-block controls and all 5,696 original model/row/mask factorization checks. The current complete suite has 45 Python and eleven Node tests; installed reproduction imports twelve modules and runs nine commands. No original fit, split, scores or geometry references change. Analytical masks on complete source data are not a natural-missingness or interval-coverage validation.
