@@ -1,6 +1,6 @@
 # Conditioning a frozen mixture
 
-MixtureLab v0.3 adds arbitrary observed-coordinate conditioning to the same saved Gaussian mixtures. No parameters, original data, fitted artifacts, split, restart choices, scores, browser data or previous geometry references change. This implements established Gaussian identities from scratch, not a new estimator or an implementation copied from a package.
+Condition on any subset of observed coordinates in the saved Gaussian mixtures. The model parameters, data, split, restart choices, scores and geometry references stay fixed. The implementation uses standard Gaussian identities written from scratch, not a new estimator or a package implementation.
 
 ## Scope and input
 
@@ -48,7 +48,7 @@ Two complete synthetic models expose limits:
 
 ## Independent checks and what agreement means
 
-The complete project suite has **45 Python tests and eleven Node/Chrome tests**. Nine new Python tests include:
+The complete project suite has **45 Python tests and eleven Node/Chrome tests**. Nine Python tests cover conditional inference:
 
 - Direct scalar 2D Gaussian conditional means, variances and log densities, using explicit formulas rather than production helpers.
 - One hundred fixed-seed six-dimensional Gaussian controls checked through the separate precision-block conditional identity, instead of the production covariance Schur complement. Native matrix arithmetic is shared, not an independent numerical library.
@@ -56,9 +56,9 @@ The complete project suite has **45 Python tests and eleven Node/Chrome tests**.
 - Empty-dimensional limits, observed-order permutation, original-unit means/covariances/Jacobians, component-label permutation, duplicate splitting, no model mutation, invalid/numerically extreme input, finite logweights after displayed-weight underflow and strict CLI refusal/duplicate-key exit codes.
 - Both fixed synthetic controls above.
 
-Two new Node tests compare **160 complete native references**: all eight models, five fixed source rows and four masks. Means, every component and total covariance entry, within/between moments, log evidence/weights, original units and conditional target density are compared. Separate scalar Gaussian, refusal, no-mutation, empty-target and underflow controls are included. JavaScript uses scalar loops and the existing browser Cholesky helper, not the native NumPy implementation. Cross-language agreement is not an independent mathematical oracle.
+Two Node tests compare **160 complete native references**: all eight models, five fixed source rows and four masks. Means, every component and total covariance entry, within/between moments, log evidence/weights, original units and conditional target density are compared. Separate scalar Gaussian, refusal, no-mutation, empty-target and underflow controls are included. JavaScript uses scalar loops and the existing browser Cholesky helper, not the native NumPy implementation. Cross-language agreement is not an independent mathematical oracle.
 
-The new actual-Chrome test applies all **160 reference cases through the UI**, checks complete moments and displayed context/card counts, omitted-value poisoning, invalid-input retention including a changed model selector, keyboard checkbox interaction, clipboard denial/success and actual Blob JSON. Responsive overflow and visible 44px numeric/select/button/summary controls are checked at 320/390/1280 widths. UI/module matching is not another independent Gaussian oracle; actual screenshots are inspected separately.
+The actual-Chrome conditional test applies all **160 reference cases through the UI**, checks complete moments and displayed context/card counts, omitted-value poisoning, invalid-input retention including a changed model selector, keyboard checkbox interaction, clipboard denial/success and actual Blob JSON. Responsive overflow and visible 44px numeric/select/button/summary controls are checked at 320/390/1280 widths. UI/module matching is not another independent Gaussian oracle; actual screenshots are inspected separately.
 
 ## Browser behavior
 
