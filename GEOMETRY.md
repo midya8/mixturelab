@@ -1,6 +1,6 @@
 # Local density geometry and bounded ascent
 
-This extension differentiates **inputs**, holding every v0.1 model parameter fixed. It neither retrains a mixture nor changes the split, scale, original experiment report or test scores. It implements standard Gaussian-mixture derivatives and a simple bounded sufficient-ascent search, not a new mode-finding algorithm.
+Differentiate **inputs** while keeping the saved model parameters fixed. The derivatives and bounded sufficient-ascent search do not retrain a mixture or change the split, scale, experiment report or test scores. Both use standard formulas, not a new mode-finding algorithm.
 
 [Live geometry inspector](https://midya8.github.io/mixturelab/geometry.html) · [Original experiment](METHOD.md)
 
@@ -48,7 +48,7 @@ The search works in standardized 13D coordinates and holds the density fixed. At
 
 The implementation compares the actual subtraction against the required gain, rather than a rounded `L_old+required` threshold that could accept no observable gain. Every accepted point, log density, norm, step length, halving count, actual gain and required gain is retained. Browser controls offer budgets 0, 1, 16 and 128; library/CLI allow 0 through 4096. A zero budget returns the initial state with no accepted updates. No random perturbation or second-order escape is hidden in the routine.
 
-A near-zero gradient is **not** a mode certificate. The search makes no exhaustive-mode, global-optimum, basin-coverage, finite-error or convergence-rate claim. The source paper below studies more sophisticated mode search; this implementation is deliberately the narrower bounded normalized-gradient routine defined here. We do not import that paper's mode-count or exhaustive-search claims. The CMU backtracking rule is adapted to ascent by negating the objective; no convex global convergence theorem is applied to this nonconcave log density.
+A near-zero gradient is **not** a mode certificate. The search makes no exhaustive-mode, global-optimum, basin-coverage, finite-error or convergence-rate claim. The source paper below studies more sophisticated mode search; this implementation is deliberately the narrower bounded normalized-gradient routine defined here. The paper's mode-count and exhaustive-search claims do not apply here. The CMU backtracking rule is adapted to ascent by negating the objective; no convex global convergence theorem is applied to this nonconcave log density.
 
 ## 3. Zero-gradient minimum control
 
@@ -65,9 +65,9 @@ A single Gaussian has H=-C^-1 everywhere. Duplicating one Gaussian and splitting
 
 ## 4. Preserved real-model audit
 
-All original v0.1 models, data, protocol, report, browser reference and browser dataset remain byte-for-byte unchanged. The extension adds 40 geometry reference cases: all eight train-selected models x original rows {0,35,87,142,177}. Each case includes every 13D gradient coordinate, every 13x13 Hessian entry, every kx13 responsibility-Jacobian entry, both Hessian terms and original-unit transforms.
+The geometry calculations use the saved models, data, protocol and report without changing their bytes or the original browser references. The 40 geometry reference cases cover all eight train-selected models x original rows {0,35,87,142,177}. Each case includes every 13D gradient coordinate, every 13x13 Hessian entry, every kx13 responsibility-Jacobian entry, both Hessian terms and original-unit transforms.
 
-Eight saved traces start at the same public test-example row already displayed by v0.1 and run at a fixed budget of 128. These are an optimization audit of already-public fixed models/inputs, not new test-based model selection or a held-out model-quality benchmark. The diagonal models and one-component full model reach the numerical norm criterion; full models with k=2,3,5 remain `budget_exhausted` at 128. All remain visible. Input ascent can leave empirical ranges and does not guarantee chemically plausible feature combinations.
+Eight saved traces start at the same public test-example row displayed by the original density inspector and run at a fixed budget of 128. These are an optimization audit of already-public fixed models/inputs, not new test-based model selection or a held-out model-quality benchmark. The diagonal models and one-component full model reach the numerical norm criterion; full models with k=2,3,5 remain `budget_exhausted` at 128. All remain visible. Input ascent can leave empirical ranges and does not guarantee chemically plausible feature combinations.
 
 ## 5. Independent checks
 
@@ -79,11 +79,11 @@ Eight saved traces start at the same public test-example row already displayed b
 - Every accepted trace step is checked for the actual sufficient-ascent inequality, step length and finite budget. The zero-gradient strict minimum, zero budget, invalid values and duplicate controls are explicit.
 - Actual Chrome checks numerical witnesses on the page, model/input changes, trace reset, all budgets, keyboard input, invalid export blocking, copy failure/success, the downloaded JSON blob and expanded mobile/desktop layouts.
 
-The stored reference generator never refits or rewrites the original experiment. Regeneration checks compare every nested numeric value with tolerance `2e-8 * (1 + abs(reference))`, preserving keys, shapes, discrete statuses and update counts exactly. JSON float spelling is not bitwise portable across Python/BLAS platforms. `python -m mixturelab.geometry_export` recreates only the two new geometry artifacts.
+The stored reference generator never refits or rewrites the original experiment. Regeneration checks compare every nested numeric value with tolerance `2e-8 * (1 + abs(reference))`, preserving keys, shapes, discrete statuses and update counts exactly. JSON float spelling is not bitwise portable across Python/BLAS platforms. `python -m mixturelab.geometry_export` recreates only the two geometry artifacts.
 
 ## 6. CLI
 
-Input JSON uses the same strict `{"samples":[[13 original feature values]]}` format as v0.1, with exactly one row for these commands:
+Input JSON uses the same strict `{"samples":[[13 original feature values]]}` format as the density inspector, with exactly one row for these commands:
 
 ```sh
 mixturelab geometry --input input.json
@@ -97,7 +97,7 @@ Outputs retain the selected fixed model ID, local derivatives and, for ascent, a
 
 - Carreira-Perpinan, M. A. (2000), *Mode-finding for mixtures of Gaussian distributions*. The primary paper's equations (4)-(7) give density and log-density input derivatives; it explicitly distinguishes zero-gradient minima/saddles from maxima. The fixed-model derivative formulas here are equivalent to its formulas, with a centered covariance expression for numerical implementation. Our bounded normalized-gradient search is not a reproduction of its gradient-quadratic/exhaustive strategy. https://faculty.ucmerced.edu/mcarreira-perpinan/papers/pami00.pdf
 - Tibshirani, R., CMU convex optimization lecture, *Gradient descent*. Backtracking sufficient-decrease rule and halving; used only for the corresponding sufficient-ascent condition, not a convex convergence theorem for mixtures. https://www.stat.cmu.edu/~ryantibs/convexopt-F16/lectures/grad-descent.pdf
-- *Gradients of Softmax and Logsumexp* (2024). The elementwise derivatives and stable max-shift explanation are useful cross-checks. Its displayed matrix formula `I - ss^T` is incorrect for the ordinary softmax Jacobian; it should be `diag(s) - ss^T`. We use the elementwise chain rule above, not that erroneous matrix formula. https://indii.org/blog/gradients-of-softmax-and-logsumexp/
+- *Gradients of Softmax and Logsumexp* (2024). The elementwise derivatives and stable max-shift explanation are useful cross-checks. Its displayed matrix formula `I - ss^T` is incorrect for the ordinary softmax Jacobian; it should be `diag(s) - ss^T`. The implementation uses the elementwise chain rule above, not that erroneous matrix formula. https://indii.org/blog/gradients-of-softmax-and-logsumexp/
 - NumPy official documentation for numerical Euclidean norms and symmetric curvature eigenvalues in native checks. https://numpy.org/doc/stable/reference/generated/numpy.linalg.norm.html ; https://numpy.org/doc/stable/reference/generated/numpy.linalg.eigvalsh.html
 - Original data/EM/constrained-M-step sources remain in [METHOD.md](METHOD.md), including UCI Wine provenance and CC BY 4.0 license. https://archive.ics.uci.edu/dataset/109/wine
 
